@@ -280,6 +280,38 @@ jobs:
 
           echo "Smoke test passed."
 
+      # (8) arm64 is built and published but was never started. Under QEMU a
+      # full round trip would take far too long, so this checks the one thing
+      # that actually differs between architectures: that the binary runs at
+      # all and the service comes up.
+      - name: Build arm64 image for a start check
+        if: steps.check.outputs.skip != 'true'
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          platforms: linux/arm64
+          push: false
+          load: true
+          tags: juicefs:smoke-arm64
+          cache-from: type=gha
+
+      - name: Start check on arm64
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          cleanup() { docker logs juicefs-arm64 || true; docker rm -f juicefs-arm64 >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+          docker run -d --name juicefs-arm64 -p 9100:9000 juicefs:smoke-arm64
+          ok=""
+          for i in $(seq 1 90); do
+            code="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9100 || true)"
+            case "$code" in 200|403) ok=1; break ;; esac
+            sleep 2
+          done
+          [ -n "$ok" ] || { echo "::error::The arm64 image never came up"; exit 1; }
+          docker exec juicefs-arm64 juicefs status sqlite3:///config/juicefs.db >/dev/null             || { echo "::error::arm64 came up but created no file system"; exit 1; }
+          echo "arm64 starts and creates its file system."
+
       - name: Stamp the build time
         id: zeit
         run: echo "jetzt=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "${GITHUB_OUTPUT}"
