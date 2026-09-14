@@ -48,7 +48,10 @@ const markTX = LOGO_X - mb.x * sM, markTY = H / 2 - markH / 2 - mb.y * sM;
 const textX = LOGO_X + markW + GAP_LOGO_TEXT;
 const maxNameW = W - textX - RIGHT_PAD;
 
-let ns = 110 / (bbox(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400"><path d="${bree.getPath("G", 0, 300, 200).toPathData(2)}" fill="#000"/></svg>`).height / 200);
+// Versalhoehe an H gemessen, nicht an G: das G ueberschwingt oben und unten,
+// wodurch der Name 3,6 Prozent kleiner gesetzt wuerde als in den Bannern, die
+// der gemeinsame Wrapper-Generator baut. Beide messen jetzt dasselbe.
+let ns = 110 / (bbox(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400"><path d="${bree.getPath("H", 0, 300, 200).toPathData(2)}" fill="#000"/></svg>`).height / 200);
 const adv = bree.getAdvanceWidth(NAME, ns);
 if (adv > maxNameW) ns = ns * maxNameW / adv;
 const nameD = bree.getPath(NAME, 0, 0, ns).toPathData(2);

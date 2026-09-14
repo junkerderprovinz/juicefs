@@ -1,12 +1,13 @@
 # Push the README to the Docker Hub repo's Overview, on demand and nothing else.
 #
-# The image build already syncs the description after every push, but only after
-# a full multi-arch build. That makes it useless for answering the one question
-# worth answering when the sync starts failing: is the credential broken, or is
-# this repo's secret wrong? A run that builds nothing isolates the credential.
+# This is the only place the description is synced. The image build does not do
+# it, so after a README change the Overview on Docker Hub stays as it was until
+# this workflow runs.
 #
 # Manual only. It never builds, never pushes an image, and touches nothing but
-# the description text on Docker Hub.
+# the description text on Docker Hub. Because it builds nothing, it also answers
+# the question worth answering when the sync starts failing: a red run here means
+# the credential is the problem, not the build.
 name: Docker Hub description
 
 on:
