@@ -220,5 +220,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.tags.outputs.tags }}
+          # The commit and build time are only knowable here, not in the
+          # Dockerfile. Without the revision label a published image cannot be
+          # traced back to the source it was built from, which is exactly the
+          # question worth asking when something misbehaves in the wild.
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.repository.updated_at }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
