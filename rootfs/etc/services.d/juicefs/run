@@ -26,14 +26,17 @@ MINIO_ROOT_PASSWORD="$(cat /run/s3_root_password)"
 META_URL="$(cat /run/meta_url)"
 export MINIO_ROOT_USER MINIO_ROOT_PASSWORD
 
-# HOME decides where JuiceFS puts its cache when no directory is given. gosu
-# drops to a uid that has no passwd entry, so HOME would be "/", the cache would
-# land in /.juicefs/cache, and that path is not writable for a non-root user.
-# The result is a cache clamped to zero and one warning per second in the log,
-# forever. Pointing HOME at a directory the service owns fixes both.
-export HOME=/cache
-mkdir -p /cache 2>/dev/null
-chown "${PUID}:${PGID}" /cache 2>/dev/null
+# Without an explicit cache directory, JuiceFS derives one from HOME. gosu drops
+# to a uid that has no passwd entry, so HOME ends up as "/", the cache lands in
+# /.juicefs/cache, and that path is not writable for a non-root user: the cache
+# is clamped to zero and the log fills with one warning per second, forever.
+#
+# Setting HOME here does not help, because gosu sets it again for the target
+# user. The directory has to be passed as an argument, which is what CACHE_DIR
+# below does with this as its default.
+CACHE_DIR="${CACHE_DIR:-/cache}"
+mkdir -p "${CACHE_DIR}" 2>/dev/null
+chown "${PUID}:${PGID}" "${CACHE_DIR}" 2>/dev/null
 
 # Arguments are built as a positional list, not as one string. A path with a
 # space in it would otherwise split into two arguments and the gateway would
