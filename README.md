@@ -145,22 +145,36 @@ NoSuchBucket, which is the first thing most backup clients try to do. Set
 
 ## 5. Configuration
 
+Some settings are read on every start, and some only once, when the file system
+is created. That distinction matters: changing a create-only setting later has
+no effect, and the log will not tell you so.
+
+**Read on every start:**
+
 | Variable | Default | What it does |
 | --- | --- | --- |
 | `META_URL` | `sqlite3:///config/juicefs.db` | Where the metadata lives. See section 6. |
-| `STORAGE` | `file` | The object store backend. `file` means a plain directory. |
-| `BUCKET` | `/data/` | The path or URL of the object store. |
-| `VOLUME_NAME` | `juicefs` | The name of the file system, set once when it is created. |
 | `MULTI_BUCKETS` | `true` | Whether clients can create buckets. Set to `false` for upstream's single-bucket mode, where the whole file system is one bucket named after the volume. |
 | `S3_ROOT_USER` | `juicefs` | The access key clients use. |
-| `S3_ROOT_PASSWORD` | generated | The secret key clients use. Left empty, one is generated and stored in `/config`. |
-| `ACCESS_KEY` | empty | Access key for a remote object store, if `STORAGE` is not `file`. |
-| `SECRET_KEY` | empty | Secret key for a remote object store. |
-| `TRASH_DAYS` | upstream default | How many days deleted files stay recoverable. Set once, when the file system is created. |
-| `CACHE_SIZE` | upstream default | Local cache limit in MiB. |
-| `CACHE_DIR` | upstream default | Where the local cache goes. |
+| `S3_ROOT_PASSWORD` | generated | The secret key clients use, **at least 8 characters**. Anything shorter is refused with one clear line in the log rather than a container that restarts forever. Left empty, one is generated and stored in `/config/.s3_root_password`. |
+| `CACHE_SIZE` | upstream default | Local read cache limit in MiB. |
+| `CACHE_DIR` | `/cache` | Where the local read cache goes. Map it if you want the cache on a specific disk. |
 | `EXTRA_ARGS` | empty | Passed to `juicefs gateway` as is, for anything not covered above. |
 | `PUID` / `PGID` | `99` / `100` | The user the gateway runs as. |
+
+**Read only when the file system is created:**
+
+| Variable | Default | What it does |
+| --- | --- | --- |
+| `STORAGE` | `file` | The object store backend. `file` means a plain directory. |
+| `BUCKET` | `/data/` | The path or URL of the object store. |
+| `VOLUME_NAME` | `juicefs` | The name of the file system. |
+| `ACCESS_KEY` | empty | Access key for a remote object store, if `STORAGE` is not `file`. |
+| `SECRET_KEY` | empty | Secret key for a remote object store. |
+| `TRASH_DAYS` | upstream default | How many days deleted files stay recoverable. |
+
+To change any of the second group on an existing install, you have to create a
+new file system, which means new metadata and starting over with the objects.
 
 `STORAGE` and `BUCKET` accept every backend JuiceFS supports, so the same
 container can put its chunks on another S3 server, on Backblaze B2 or on a

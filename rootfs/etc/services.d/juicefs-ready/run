@@ -38,7 +38,10 @@ NC='\033[0m'
 
 if [ "$ready" -eq 1 ]; then
     printf '%b\n' "  ${GREEN}✓ JUICEFS IS READY${NC} - the S3 gateway is serving on port 9000"
-    if [ -f /config/.s3_root_password ]; then
+    # Only when the key in that file is the one actually in use. 10-config.sh
+    # leaves the marker exactly then. Pointing at the file after someone set
+    # their own key would send them to a stale value.
+    if [ -f /run/key_generated ]; then
         printf '%b\n' "  ${YELLOW}! SECRET KEY WAS GENERATED${NC} - it is in /config/.s3_root_password, set the template field to choose your own"
     fi
 else

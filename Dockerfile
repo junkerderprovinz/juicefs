@@ -119,13 +119,29 @@ RUN chmod +x /usr/local/bin/print-banner.sh \
     /etc/services.d/juicefs/run \
     /etc/services.d/juicefs-ready/run
 
+# A failing init step must stop the container. Without this, s6-overlay's
+# default is to carry on quietly: the init script would exit 1, say the gateway
+# will not start, and the gateway would then restart about once a second
+# forever while the container still showed as running.
+ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2
+
 # The S3 gateway. Nothing else is served, and nothing else needs publishing.
 EXPOSE 9000
+
+# So a container that is up but not serving is visible as such, in Unraid's
+# docker tab and in `docker ps`. An unauthenticated request is refused with 403,
+# which still proves the listener is there, so the status code is what counts.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD sh -c 'c=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:9000); [ "$c" = "200" ] || [ "$c" = "403" ]'
 
 # /config holds the metadata database when the default SQLite engine is used;
 # /data holds the object store when the default local backend is used. Both are
 # separate so a user can put the database on fast storage and the blobs on the
 # array.
-VOLUME ["/data", "/config"]
+#
+# /cache is where the read cache goes. It is a volume rather than a directory in
+# the container's own layer, because the cache grows to whatever the free-space
+# ratio allows and that layer is the worst place for it.
+VOLUME ["/data", "/config", "/cache"]
 
 ENTRYPOINT ["/init"]

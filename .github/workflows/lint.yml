@@ -108,21 +108,24 @@ jobs:
             }
           }' .github/workflows/
 
-      - name: Validate template YAML syntax
+      # The step this replaced looked for rootfs/defaults/*.yaml.tmpl, which this
+      # repo has never had. It found nothing and reported success, which is worse
+      # than having no check at all: a green tick that means nothing.
+      - name: Validate YAML syntax
         run: |
           python3 -c "
           import yaml, sys, glob
 
-          files = glob.glob('rootfs/defaults/*.yaml.tmpl')
+          files = sorted(glob.glob('.github/workflows/*.yml') + glob.glob('.github/**/*.yaml', recursive=True))
+          if not files:
+              print('ERROR: no YAML files found, this check would pass without testing anything', file=sys.stderr)
+              sys.exit(1)
+
           errors = []
           for f in files:
-              # Replace envsubst placeholders with dummy values for syntax check
-              with open(f) as fh:
-                  content = fh.read()
-              import re
-              content = re.sub(r'\$\{[^}]+\}', 'PLACEHOLDER', content)
               try:
-                  yaml.safe_load(content)
+                  with open(f) as fh:
+                      yaml.safe_load(fh)
                   print(f'OK: {f}')
               except yaml.YAMLError as e:
                   errors.append(f'{f}: {e}')
@@ -131,6 +134,5 @@ jobs:
               for err in errors:
                   print(f'ERROR: {err}', file=sys.stderr)
               sys.exit(1)
-          else:
-              print('All YAML templates parsed successfully.')
+          print(f'{len(files)} YAML files parsed successfully.')
           "

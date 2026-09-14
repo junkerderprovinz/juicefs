@@ -236,6 +236,48 @@ jobs:
             || { echo "::error::The object came back different than it went in"; exit 1; }
           echo "S3 round trip intact (${VOR})"
 
+          # (5) The read cache has to actually work. It used to land in a
+          # directory the service could not write to, which clamped it to zero
+          # and wrote one warning per second into the log, forever.
+          if docker logs juicefs-smoke 2>&1 | grep -q "no such file or directory.*juicefs/cache"; then
+            echo "::error::The read cache directory is not writable, the log is filling with warnings"
+            exit 1
+          fi
+          WARN="$(docker logs juicefs-smoke 2>&1 | grep -c 'getDiskUsage' || true)"
+          [ "${WARN}" -lt 5 ] \
+            || { echo "::error::${WARN} cache warnings in the log, the cache path is wrong"; exit 1; }
+          echo "Cache path healthy (${WARN} warnings)"
+
+          docker rm -f juicefs-smoke >/dev/null 2>&1 || true
+
+          # (6) A secret key below the gateway's hard minimum must fail fast
+          # with one clear line, not leave a container restarting forever.
+          docker run -d --name juicefs-smoke -p 9000:9000 \
+            -e S3_ROOT_PASSWORD=short juicefs:smoke-amd64 >/dev/null
+          sleep 12
+          ZUSTAND="$(docker inspect -f '{{.State.Status}}' juicefs-smoke)"
+          [ "${ZUSTAND}" = "exited" ] \
+            || { echo "::error::A too-short secret key left the container ${ZUSTAND}, expected exited"; exit 1; }
+          docker logs juicefs-smoke 2>&1 | grep -q "at least 8" \
+            || { echo "::error::The container stopped but did not say why"; exit 1; }
+          echo "Short secret key refused cleanly"
+
+          docker rm -f juicefs-smoke >/dev/null 2>&1 || true
+
+          # (7) A path with a space in it must not split into two arguments.
+          VOL_SP="$(mktemp -d)/with space"
+          mkdir -p "${VOL_SP}"
+          docker run -d --name juicefs-smoke -p 9000:9000 \
+            -v "${VOL_SP}:/cache-sp" -e CACHE_DIR="/cache-sp" juicefs:smoke-amd64 >/dev/null
+          ok=""
+          for i in $(seq 1 45); do
+            code="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9000 || true)"
+            case "$code" in 200|403) ok=1; break ;; esac
+            sleep 2
+          done
+          [ -n "$ok" ] || { echo "::error::A cache path broke the gateway's command line"; docker logs juicefs-smoke | tail -5; exit 1; }
+          echo "Quoted paths survive"
+
           echo "Smoke test passed."
 
       - name: Build and push multi-arch image

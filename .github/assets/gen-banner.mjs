@@ -28,11 +28,9 @@ const bree = await font("jdp-BreeSerif-Regular.ttf", "https://github.com/google/
 const lato = await font("jdp-Lato-Regular.ttf", "https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf");
 const bbox = (svg) => new Resvg(svg, { fitTo: { mode: "original" } }).getBBox();
 
-// icon.svg is the JuiceFS mark ONLY, with any wordmark letters stripped from
+// icon.svg is the JuiceFS mark ONLY, with the wordmark letters stripped from
 // the upstream lockup -- the "JuiceFS" name is typeset here instead, same as
-// every other repo's banner. NOTE: icon.svg still has to be put in place; the
-// Garage mark that used to sit here was removed because it belongs to another
-// project.
+// every other repo's banner.
 const W = 1600, H = 500, LOGO_INK = 400, LOGO_X = 165, GAP_LOGO_TEXT = 70, GAP_NAME_CLAIM = 16, CLAIM_CAP = 44, RIGHT_PAD = 120;
 // Der Claim wird kleiner gesetzt, je breiter er ist (fitClaim gegen CLAIM_CAP).
 // Ein langer, sachlicher Satz landet deshalb bei 29px statt der vollen 44px und

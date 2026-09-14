@@ -48,19 +48,46 @@ mkdir -p /data /config
 # credentials of a remote object store; those are ACCESS_KEY / SECRET_KEY below.
 S3_ROOT_USER="${S3_ROOT_USER:-juicefs}"
 
-if [ -z "${S3_ROOT_PASSWORD}" ]; then
-    if [ -f /config/.s3_root_password ]; then
+# The gateway refuses anything shorter and exits, so catching it here turns a
+# container that restarts forever into one clear line in the log.
+MINDEST=8
+
+if [ -n "${S3_ROOT_PASSWORD}" ]; then
+    if [ "${#S3_ROOT_PASSWORD}" -lt "${MINDEST}" ]; then
+        log_error "The secret key is ${#S3_ROOT_PASSWORD} characters long."
+        log_error "JuiceFS requires at least ${MINDEST} and refuses to start otherwise."
+        log_error "Set a longer value in the template field, then start the container again."
+        exit 1
+    fi
+else
+    # -s, not -f: a file that exists but is empty (a power cut between creating
+    # and writing it, a full disk, a backup that restored a zero-byte file)
+    # would otherwise be read as an empty password, reported as a success, and
+    # leave the gateway restarting forever.
+    if [ -s /config/.s3_root_password ]; then
         S3_ROOT_PASSWORD="$(cat /config/.s3_root_password)"
-        log_info "Using the generated S3 secret key from /config/.s3_root_password"
-    else
+        if [ "${#S3_ROOT_PASSWORD}" -lt "${MINDEST}" ]; then
+            log_warn "The stored secret key is too short to be usable. Generating a new one."
+            S3_ROOT_PASSWORD=""
+        else
+            log_info "Using the generated S3 secret key from /config/.s3_root_password"
+        fi
+    fi
+    if [ -z "${S3_ROOT_PASSWORD}" ]; then
         S3_ROOT_PASSWORD="$(openssl rand -hex 16)"
         printf '%s' "${S3_ROOT_PASSWORD}" > /config/.s3_root_password
         chmod 600 /config/.s3_root_password
         log_warn "No S3_ROOT_PASSWORD was set. Generated one and stored it in"
-        log_warn "/config/.s3_root_password — read it from there, or set the"
+        log_warn "/config/.s3_root_password. Read it from there, or set the"
         log_warn "field in the template to a value you choose."
+        ERZEUGT=ja
     fi
 fi
+
+# The ready banner should only point at the file when the key in it is the one
+# actually in use. Otherwise it sends someone who set their own key off to read
+# a stale value.
+[ -n "${ERZEUGT:-}" ] && : > /run/key_generated
 
 # Persist for the service script, which runs in its own shell.
 printf '%s' "${S3_ROOT_USER}"     > /run/s3_root_user
@@ -71,9 +98,9 @@ printf '%s' "${META_URL}"         > /run/meta_url
 # `juicefs status` succeeds exactly when the metadata engine already holds a
 # formatted volume. Asking first is what keeps this safe to run on every start.
 if juicefs status "${META_URL}" >/dev/null 2>&1; then
-    log_info "Existing file system found — leaving it untouched"
+    log_info "Existing file system found, leaving it untouched"
 else
-    log_info "No file system in the metadata engine yet — creating '${VOLUME_NAME}'"
+    log_info "No file system in the metadata engine yet, creating '${VOLUME_NAME}'"
     log_info "  metadata: ${META_URL%%://*}://…"
     log_info "  storage:  ${STORAGE} at ${BUCKET}"
 
@@ -91,6 +118,6 @@ else
     fi
 fi
 
-chown -R "${PUID}:${PGID}" /data /config 2>/dev/null || log_warn "chown failed — check PUID/PGID"
+chown -R "${PUID}:${PGID}" /data /config 2>/dev/null || log_warn "chown failed, check PUID/PGID"
 
 log_info "Init complete"
