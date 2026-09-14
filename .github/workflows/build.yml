@@ -171,8 +171,20 @@ jobs:
           docker exec juicefs-smoke test -s /config/.s3_root_password \
             || { echo "::error::No generated secret key was persisted"; exit 1; }
 
-          # Record what the volume looks like now, to compare after the restart.
-          BEFORE="$(docker exec juicefs-smoke juicefs status sqlite3:///config/juicefs.db | tr -d '[:space:]')"
+          # Record the volume's UUID, which is the one field that changes only
+          # when the volume is formatted. The rest of `juicefs status` carries
+          # live session data (expiry, mount time, process id, used space) that
+          # differs after every restart, so comparing the whole output would
+          # fail even when nothing is wrong.
+          uuid_of() {
+            docker exec juicefs-smoke juicefs status sqlite3:///config/juicefs.db \
+              | grep -oE '"UUID": *"[^"]+"' | head -1
+          }
+          BEFORE="$(uuid_of)"
+          # An empty value would make the comparison below pass no matter what,
+          # which is worse than a failing test.
+          [ -n "${BEFORE}" ] || { echo "::error::Could not read the volume UUID"; exit 1; }
+          echo "Volume UUID before the restart: ${BEFORE}"
 
           # (3) Restart on the same volumes. The UUID must survive; a new one
           # means the init script formatted over an existing file system.
@@ -185,11 +197,19 @@ jobs:
           done
           [ -n "$ok" ] || { echo "::error::Gateway did not come back after a restart"; exit 1; }
 
-          AFTER="$(docker exec juicefs-smoke juicefs status sqlite3:///config/juicefs.db | tr -d '[:space:]')"
+          AFTER="$(uuid_of)"
+          [ -n "${AFTER}" ] || { echo "::error::Could not read the volume UUID after the restart"; exit 1; }
+          echo "Volume UUID after the restart:  ${AFTER}"
           if [ "${BEFORE}" != "${AFTER}" ]; then
-            echo "::error::The file system changed across a restart — it was formatted again"
+            echo "::error::The volume UUID changed across a restart, so it was formatted again"
             exit 1
           fi
+
+          # The init script must say so too. Without this, a run where the
+          # format step silently did nothing would still look green.
+          docker logs juicefs-smoke 2>&1 | grep -q "Existing file system found" \
+            || { echo "::error::The init script did not report finding the existing file system"; exit 1; }
+
           echo "Smoke test passed."
 
       - name: Build and push multi-arch image
