@@ -34,7 +34,10 @@ const bbox = (svg) => new Resvg(svg, { fitTo: { mode: "original" } }).getBBox();
 // Garage mark that used to sit here was removed because it belongs to another
 // project.
 const W = 1600, H = 500, LOGO_INK = 400, LOGO_X = 165, GAP_LOGO_TEXT = 70, GAP_NAME_CLAIM = 16, CLAIM_CAP = 44, RIGHT_PAD = 120;
-const NAME = "JuiceFS", CLAIM = "An S3 gateway over a database and the storage you already have.";
+// Der Claim wird kleiner gesetzt, je breiter er ist (fitClaim gegen CLAIM_CAP).
+// Ein langer, sachlicher Satz landet deshalb bei 29px statt der vollen 44px und
+// wirkt neben dem Namen verloren. Kurz halten, so wie in den Schwester-Repos.
+const NAME = "JuiceFS", CLAIM = "Squeezed into buckets, served as S3.";
 
 const iconSrc = readFileSync(join(HERE, "icon.svg"), "utf8");
 const iconInner = iconSrc.replace(/^[\s\S]*?<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "");
