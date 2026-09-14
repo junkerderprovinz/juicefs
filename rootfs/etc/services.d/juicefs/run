@@ -1,0 +1,39 @@
+#!/command/with-contenv sh
+# shellcheck shell=sh
+# =============================================================================
+# s6 service: juicefs
+# Runs the JuiceFS S3 gateway.
+#
+# The gateway is the right mode for this image: it needs no FUSE, no
+# --privileged and no shared bind propagation, just a port. The mount mode
+# would need all three, and none of that fits a template a stranger installs
+# with two clicks.
+#
+# JuiceFS reads the gateway credentials from MINIO_ROOT_USER and
+# MINIO_ROOT_PASSWORD (its S3 layer is built on the MinIO gateway code, hence
+# the names). 10-config.sh has already written the effective values to /run,
+# so the same credentials are used whether the user supplied them or one was
+# generated.
+#
+# s6-overlay v3 convention: no backgrounding, exec so signals reach the process.
+# =============================================================================
+
+PUID="${PUID:-99}"
+PGID="${PGID:-100}"
+
+MINIO_ROOT_USER="$(cat /run/s3_root_user)"
+MINIO_ROOT_PASSWORD="$(cat /run/s3_root_password)"
+META_URL="$(cat /run/meta_url)"
+export MINIO_ROOT_USER MINIO_ROOT_PASSWORD
+
+# Optional tuning, all off unless the template sets them.
+ARGS=""
+[ -n "${CACHE_SIZE}" ]   && ARGS="${ARGS} --cache-size ${CACHE_SIZE}"
+[ -n "${CACHE_DIR}" ]    && ARGS="${ARGS} --cache-dir ${CACHE_DIR}"
+[ -n "${EXTRA_ARGS}" ]   && ARGS="${ARGS} ${EXTRA_ARGS}"
+
+cd /data || { echo "[juicefs] FATAL: cannot cd into /data" >&2; exit 1; }
+
+# shellcheck disable=SC2086
+exec gosu "${PUID}:${PGID}" \
+    /usr/local/bin/juicefs gateway ${ARGS} "${META_URL}" 0.0.0.0:9000
