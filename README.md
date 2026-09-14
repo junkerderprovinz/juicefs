@@ -134,6 +134,13 @@ aws --endpoint-url http://<server>:9000 s3 cp ./file.txt s3://backups/
 aws --endpoint-url http://<server>:9000 s3 ls s3://backups/
 ```
 
+You can create as many buckets as you like, because the container runs the
+gateway in its multi-bucket mode. Each bucket is a top-level directory in the
+file system. That matters more than it sounds: in the plain mode the whole file
+system is a single bucket named after the volume, and creating one fails with
+NoSuchBucket, which is the first thing most backup clients try to do. Set
+`MULTI_BUCKETS` to `false` if you want the single-bucket behaviour instead.
+
 <br>
 
 ## 5. Configuration
@@ -144,6 +151,7 @@ aws --endpoint-url http://<server>:9000 s3 ls s3://backups/
 | `STORAGE` | `file` | The object store backend. `file` means a plain directory. |
 | `BUCKET` | `/data/` | The path or URL of the object store. |
 | `VOLUME_NAME` | `juicefs` | The name of the file system, set once when it is created. |
+| `MULTI_BUCKETS` | `true` | Whether clients can create buckets. Set to `false` for upstream's single-bucket mode, where the whole file system is one bucket named after the volume. |
 | `S3_ROOT_USER` | `juicefs` | The access key clients use. |
 | `S3_ROOT_PASSWORD` | generated | The secret key clients use. Left empty, one is generated and stored in `/config`. |
 | `ACCESS_KEY` | empty | Access key for a remote object store, if `STORAGE` is not `file`. |

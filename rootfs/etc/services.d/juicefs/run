@@ -26,8 +26,18 @@ MINIO_ROOT_PASSWORD="$(cat /run/s3_root_password)"
 META_URL="$(cat /run/meta_url)"
 export MINIO_ROOT_USER MINIO_ROOT_PASSWORD
 
-# Optional tuning, all off unless the template sets them.
 ARGS=""
+
+# Several buckets, on by default. Without this flag the whole file system is a
+# single bucket named after the volume, and CreateBucket is refused outright.
+# Measured against rclone: `mkdir` fails with NoSuchBucket. Nearly every backup
+# client creates its own bucket as its first action, so the plain mode turns a
+# working setup into an error message at the first step. Set this to false to
+# get upstream's single-bucket behaviour back.
+MULTI_BUCKETS="${MULTI_BUCKETS:-true}"
+[ "${MULTI_BUCKETS}" = "true" ] && ARGS="${ARGS} --multi-buckets"
+
+# Optional tuning, all off unless the template sets them.
 [ -n "${CACHE_SIZE}" ]   && ARGS="${ARGS} --cache-size ${CACHE_SIZE}"
 [ -n "${CACHE_DIR}" ]    && ARGS="${ARGS} --cache-dir ${CACHE_DIR}"
 [ -n "${EXTRA_ARGS}" ]   && ARGS="${ARGS} ${EXTRA_ARGS}"

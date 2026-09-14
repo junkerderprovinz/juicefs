@@ -210,6 +210,32 @@ jobs:
           docker logs juicefs-smoke 2>&1 | grep -q "Existing file system found" \
             || { echo "::error::The init script did not report finding the existing file system"; exit 1; }
 
+          # (4) A real S3 round trip with the AWS CLI, which the runner already
+          # has. Creating a bucket is the first thing most backup clients do,
+          # and it is refused unless the gateway runs in multi-bucket mode. That
+          # was found against a live container, so it gets a test.
+          KEY="$(docker exec juicefs-smoke cat /config/.s3_root_password)"
+          [ -n "${KEY}" ] || { echo "::error::No secret key to authenticate with"; exit 1; }
+          export AWS_ACCESS_KEY_ID=juicefs
+          export AWS_SECRET_ACCESS_KEY="${KEY}"
+          export AWS_DEFAULT_REGION=us-east-1
+          EP="--endpoint-url http://127.0.0.1:9000"
+
+          aws $EP s3 mb s3://smoke \
+            || { echo "::error::Could not create a bucket, so multi-bucket mode is off"; exit 1; }
+
+          head -c 1048576 /dev/urandom > /tmp/probe.bin
+          printf 'umlauts: \303\244\303\266\303\274\n' >> /tmp/probe.bin
+          VOR="$(sha256sum /tmp/probe.bin | cut -d' ' -f1)"
+          aws $EP s3 cp /tmp/probe.bin "s3://smoke/dir/file.bin" >/dev/null \
+            || { echo "::error::Upload failed"; exit 1; }
+          aws $EP s3 cp "s3://smoke/dir/file.bin" /tmp/back.bin >/dev/null \
+            || { echo "::error::Download failed"; exit 1; }
+          NACH="$(sha256sum /tmp/back.bin | cut -d' ' -f1)"
+          [ "${VOR}" = "${NACH}" ] \
+            || { echo "::error::The object came back different than it went in"; exit 1; }
+          echo "S3 round trip intact (${VOR})"
+
           echo "Smoke test passed."
 
       - name: Build and push multi-arch image
