@@ -129,7 +129,7 @@ jobs:
       # ---------------------------------------------------------------------
       - name: Build amd64 image for smoke test
         if: steps.check.outputs.skip != 'true'
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           platforms: linux/amd64
@@ -286,7 +286,7 @@ jobs:
       # all and the service comes up.
       - name: Build arm64 image for a start check
         if: steps.check.outputs.skip != 'true'
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           platforms: linux/arm64
@@ -318,7 +318,7 @@ jobs:
 
       - name: Build and push multi-arch image
         if: steps.check.outputs.skip != 'true'
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           platforms: linux/amd64,linux/arm64
