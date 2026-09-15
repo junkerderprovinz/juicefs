@@ -132,7 +132,10 @@ EXPOSE 9000
 # docker tab and in `docker ps`. An unauthenticated request is refused with 403,
 # which still proves the listener is there, so the status code is what counts.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD sh -c 'c=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:9000); [ "$c" = "200" ] || [ "$c" = "403" ]'
+    # Exec form with the shell as the first argument rather than implied: the
+    # probe needs a shell for the substitution and the test, and naming it is
+    # what the lint gate on the push hook asks for.
+    CMD ["sh", "-c", "c=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9000); [ \"$c\" = \"200\" ] || [ \"$c\" = \"403\" ]"]
 
 # /config holds the metadata database when the default SQLite engine is used;
 # /data holds the object store when the default local backend is used. Both are
