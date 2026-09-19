@@ -1,8 +1,7 @@
 /**
- * Standalone banner generator for the juicefs repo (not part of the shared
- * unraid-apps wrapper-banner generator, since this is its own repo).
- * Same technique as the house style: text rendered at local origin, then
- * positioned via <g transform> to avoid opentype.js NaN at large absolute X.
+ * Generates the juicefs README banners. Text is rendered at the origin and
+ * placed with <g transform>, because opentype.js produces NaN at a large
+ * absolute x.
  * Run: node .github/assets/gen-banner.mjs
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -28,13 +27,11 @@ const bree = await font("jdp-BreeSerif-Regular.ttf", "https://github.com/google/
 const lato = await font("jdp-Lato-Regular.ttf", "https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf");
 const bbox = (svg) => new Resvg(svg, { fitTo: { mode: "original" } }).getBBox();
 
-// icon.svg is the JuiceFS mark ONLY, with the wordmark letters stripped from
-// the upstream lockup -- the "JuiceFS" name is typeset here instead, same as
-// every other repo's banner.
+// icon.svg is the JuiceFS mark without the upstream lockup's wordmark; the name
+// is typeset here, as on every other repo's banner.
 const W = 1600, H = 500, LOGO_INK = 400, LOGO_X = 165, GAP_LOGO_TEXT = 70, GAP_NAME_CLAIM = 16, CLAIM_CAP = 44, RIGHT_PAD = 120;
-// Der Claim wird kleiner gesetzt, je breiter er ist (fitClaim gegen CLAIM_CAP).
-// Ein langer, sachlicher Satz landet deshalb bei 29px statt der vollen 44px und
-// wirkt neben dem Namen verloren. Kurz halten, so wie in den Schwester-Repos.
+// fitClaim shrinks the claim as it gets wider, so a long sentence ends up at
+// 29px instead of 44px and looks lost next to the name. Keep it short.
 const NAME = "JuiceFS", CLAIM = "Squeezed into buckets, served as S3.";
 
 const iconSrc = readFileSync(join(HERE, "icon.svg"), "utf8");
@@ -48,9 +45,8 @@ const markTX = LOGO_X - mb.x * sM, markTY = H / 2 - markH / 2 - mb.y * sM;
 const textX = LOGO_X + markW + GAP_LOGO_TEXT;
 const maxNameW = W - textX - RIGHT_PAD;
 
-// Versalhoehe an H gemessen, nicht an G: das G ueberschwingt oben und unten,
-// wodurch der Name 3,6 Prozent kleiner gesetzt wuerde als in den Bannern, die
-// der gemeinsame Wrapper-Generator baut. Beide messen jetzt dasselbe.
+// Cap height is measured on H, not G: the G overshoots at top and bottom and
+// would set the name 3.6 percent smaller than the shared wrapper generator does.
 let ns = 110 / (bbox(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400"><path d="${bree.getPath("H", 0, 300, 200).toPathData(2)}" fill="#000"/></svg>`).height / 200);
 const adv = bree.getAdvanceWidth(NAME, ns);
 if (adv > maxNameW) ns = ns * maxNameW / adv;

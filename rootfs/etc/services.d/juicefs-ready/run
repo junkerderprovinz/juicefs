@@ -1,16 +1,11 @@
 #!/command/with-contenv sh
 # shellcheck shell=sh
-# =============================================================================
-# juicefs-ready — print a "JUICEFS IS READY" block to the container log once the
-# gateway answers, so the first start has a visible end. House standard: every
-# own-image container prints an "<APP> IS READY" log banner as the final block.
-#
-# It also prints where to find the generated secret key, because a user who
-# left that field empty otherwise has no way of knowing one exists.
-# =============================================================================
+# Prints the "JUICEFS IS READY" block once the gateway answers, so the first
+# start has a visible end. It also says where a generated secret key is, since a
+# user who left that field empty has no other way of knowing one exists.
 FLAG=/run/juicefs-ready.printed
 
-# /run is tmpfs (wiped on every container start) -> the banner prints once/start.
+# /run is a tmpfs, so the banner prints once per container start.
 if [ -f "$FLAG" ]; then
     exec sleep infinity
 fi
@@ -18,9 +13,8 @@ fi
 ready=0
 i=0
 while [ "$i" -lt 150 ]; do
-    # The gateway answers S3 requests; an unauthenticated GET on the root is
-    # refused with 403, which still proves the listener is up. curl -f treats
-    # 403 as failure, so match on the status code instead.
+    # An unauthenticated GET gets 403, which still proves the listener is up
+    # but counts as a failure for curl -f.
     code="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9000 2>/dev/null)"
     case "$code" in
         200|403) ready=1; break ;;
@@ -38,9 +32,7 @@ NC='\033[0m'
 
 if [ "$ready" -eq 1 ]; then
     printf '%b\n' "  ${GREEN}✓ JUICEFS IS READY${NC} - the S3 gateway is serving on port 9000"
-    # Only when the key in that file is the one actually in use. 10-config.sh
-    # leaves the marker exactly then. Pointing at the file after someone set
-    # their own key would send them to a stale value.
+    # 10-config.sh leaves the marker only when the key in the file is in use.
     if [ -f /run/key_generated ]; then
         printf '%b\n' "  ${YELLOW}! SECRET KEY WAS GENERATED${NC} - it is in /config/.s3_root_password, set the template field to choose your own"
     fi
@@ -50,5 +42,5 @@ fi
 echo ""
 
 : > "$FLAG"
-# Longrun: stay up so s6 does not restart us and re-print the banner.
+# A longrun that exits would be restarted by s6 and print the banner again.
 exec sleep infinity

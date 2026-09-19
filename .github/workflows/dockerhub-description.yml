@@ -1,13 +1,6 @@
-# Push the README to the Docker Hub repo's Overview, on demand and nothing else.
-#
-# This is the only place the description is synced. The image build does not do
-# it, so after a README change the Overview on Docker Hub stays as it was until
-# this workflow runs.
-#
-# Manual only. It never builds, never pushes an image, and touches nothing but
-# the description text on Docker Hub. Because it builds nothing, it also answers
-# the question worth answering when the sync starts failing: a red run here means
-# the credential is the problem, not the build.
+# Pushes the README to the Docker Hub Overview. The image build does not sync
+# it, so after a README change the Overview stays as it was until this runs. It
+# builds nothing, so a red run points at the credential.
 name: Docker Hub description
 
 on:
@@ -24,9 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      # No gate and no continue-on-error: this workflow exists to make a failure
-      # visible, so a missing secret or a refused login must turn the run red
-      # instead of passing quietly.
+      # No gate and no continue-on-error: a missing secret or a refused login
+      # should turn this run red.
       - name: Sync README to Docker Hub
         uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5
         with:

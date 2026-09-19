@@ -1,17 +1,7 @@
-# =============================================================================
-# build.yml — JuiceFS Docker Image Build & Push
-#
-# Triggers: push to main, workflow_dispatch. Output: multi-arch image
-# (linux/amd64, linux/arm64) pushed to ghcr.io/junkerderprovinz/juicefs — and,
-# once DOCKERHUB_USERNAME (variable) + DOCKERHUB_TOKEN (secret) are set
-# together, mirrored to docker.io/<DOCKERHUB_USERNAME>/juicefs — tagged
-# :latest and the pinned JUICEFS_VERSION Dockerfile ARG.
-#
-# Component versions (JuiceFS, s6-overlay) are pinned in the Dockerfile ARGs,
-# tracked by Renovate — not resolved dynamically here. The JuiceFS binary is
-# additionally checked against the SHA256 from the upstream release, so a
-# re-tagged release fails the build instead of shipping.
-# =============================================================================
+# Builds the amd64 and arm64 image, tags it latest and with the JUICEFS_VERSION
+# pinned in the Dockerfile, and pushes it to GHCR, and to Docker Hub once the
+# DOCKERHUB_USERNAME variable and the DOCKERHUB_TOKEN secret are both set.
+# Renovate bumps the pinned versions.
 
 name: Build & Push Docker Image
 
@@ -68,7 +58,7 @@ jobs:
           elif [ "${FORCE}" = "true" ]; then
             SKIP="false"
           elif docker manifest inspect "${IMAGE}" > /dev/null 2>&1; then
-            echo "Image ${IMAGE} already exists — skipping build."
+            echo "Image ${IMAGE} already exists, skipping build."
             SKIP="true"
           fi
           echo "skip=${SKIP}" >> "${GITHUB_OUTPUT}"
@@ -118,15 +108,10 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      # ---------------------------------------------------------------------
-      # Smoke-test gate (amd64). A green Docker build only proves the image
-      # builds. This proves the three things the image actually promises:
-      #   1. Started with no settings at all, it comes up serving S3.
-      #   2. It creates the file system itself, so no console step is needed.
-      #   3. Restarted on the same volumes, it does NOT format again. That is
-      #      the dangerous one: a second format would orphan every object in
-      #      the store, so it gets a test rather than a careful comment.
-      # ---------------------------------------------------------------------
+      # A green build only proves the image builds. The smoke test checks what
+      # it promises: started with no settings it serves S3, it creates the file
+      # system itself, and restarted on the same volumes it does not format
+      # again, which would orphan every object in the store.
       - name: Build amd64 image for smoke test
         if: steps.check.outputs.skip != 'true'
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
@@ -138,7 +123,7 @@ jobs:
           tags: juicefs:smoke-amd64
           cache-from: type=gha
 
-      - name: Smoke test — bare start, self-format, and no re-format on restart
+      - name: "Smoke test: bare start, self-format, and no re-format on restart"
         if: steps.check.outputs.skip != 'true'
         run: |
           set -euo pipefail
@@ -147,8 +132,8 @@ jobs:
           cleanup() { docker logs juicefs-smoke || true; docker rm -f juicefs-smoke >/dev/null 2>&1 || true; }
           trap cleanup EXIT
 
-          # (1) No -e flags on purpose: this is the path a user takes who
-          # installs the template and changes nothing.
+          # (1) No -e flags, like a user who installs the template and changes
+          # nothing.
           docker run -d --name juicefs-smoke -p 9000:9000 \
             -v "${VOL_META}:/config" -v "${VOL_DATA}:/data" \
             juicefs:smoke-amd64
@@ -210,10 +195,9 @@ jobs:
           docker logs juicefs-smoke 2>&1 | grep -q "Existing file system found" \
             || { echo "::error::The init script did not report finding the existing file system"; exit 1; }
 
-          # (4) A real S3 round trip with the AWS CLI, which the runner already
-          # has. Creating a bucket is the first thing most backup clients do,
-          # and it is refused unless the gateway runs in multi-bucket mode. That
-          # was found against a live container, so it gets a test.
+          # (4) A real S3 round trip with the runner's AWS CLI. Creating a bucket
+          # is the first thing most backup clients do, and it is refused unless
+          # the gateway runs in multi-bucket mode.
           KEY="$(docker exec juicefs-smoke cat /config/.s3_root_password)"
           [ -n "${KEY}" ] || { echo "::error::No secret key to authenticate with"; exit 1; }
           export AWS_ACCESS_KEY_ID=juicefs
@@ -226,19 +210,18 @@ jobs:
 
           head -c 1048576 /dev/urandom > /tmp/probe.bin
           printf 'umlauts: \303\244\303\266\303\274\n' >> /tmp/probe.bin
-          VOR="$(sha256sum /tmp/probe.bin | cut -d' ' -f1)"
+          SENT="$(sha256sum /tmp/probe.bin | cut -d' ' -f1)"
           aws $EP s3 cp /tmp/probe.bin "s3://smoke/dir/file.bin" >/dev/null \
             || { echo "::error::Upload failed"; exit 1; }
           aws $EP s3 cp "s3://smoke/dir/file.bin" /tmp/back.bin >/dev/null \
             || { echo "::error::Download failed"; exit 1; }
-          NACH="$(sha256sum /tmp/back.bin | cut -d' ' -f1)"
-          [ "${VOR}" = "${NACH}" ] \
+          RECEIVED="$(sha256sum /tmp/back.bin | cut -d' ' -f1)"
+          [ "${SENT}" = "${RECEIVED}" ] \
             || { echo "::error::The object came back different than it went in"; exit 1; }
-          echo "S3 round trip intact (${VOR})"
+          echo "S3 round trip intact (${SENT})"
 
-          # (5) The read cache has to actually work. It used to land in a
-          # directory the service could not write to, which clamped it to zero
-          # and wrote one warning per second into the log, forever.
+          # (5) In a directory the service cannot write to, the read cache is
+          # clamped to zero and the log gets one warning per second.
           if docker logs juicefs-smoke 2>&1 | grep -q "no such file or directory.*juicefs/cache"; then
             echo "::error::The read cache directory is not writable, the log is filling with warnings"
             exit 1
@@ -255,9 +238,9 @@ jobs:
           docker run -d --name juicefs-smoke -p 9000:9000 \
             -e S3_ROOT_PASSWORD=short juicefs:smoke-amd64 >/dev/null
           sleep 12
-          ZUSTAND="$(docker inspect -f '{{.State.Status}}' juicefs-smoke)"
-          [ "${ZUSTAND}" = "exited" ] \
-            || { echo "::error::A too-short secret key left the container ${ZUSTAND}, expected exited"; exit 1; }
+          STATE="$(docker inspect -f '{{.State.Status}}' juicefs-smoke)"
+          [ "${STATE}" = "exited" ] \
+            || { echo "::error::A too-short secret key left the container ${STATE}, expected exited"; exit 1; }
           docker logs juicefs-smoke 2>&1 | grep -q "at least 8" \
             || { echo "::error::The container stopped but did not say why"; exit 1; }
           echo "Short secret key refused cleanly"
@@ -280,10 +263,9 @@ jobs:
 
           echo "Smoke test passed."
 
-      # (8) arm64 is built and published but was never started. Under QEMU a
-      # full round trip would take far too long, so this checks the one thing
-      # that actually differs between architectures: that the binary runs at
-      # all and the service comes up.
+      # (8) arm64 is published too. A full round trip under QEMU would take far
+      # too long, so this checks what differs between architectures: that the
+      # binary runs and the service comes up.
       - name: Build arm64 image for a start check
         if: steps.check.outputs.skip != 'true'
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
@@ -313,8 +295,8 @@ jobs:
           echo "arm64 starts and creates its file system."
 
       - name: Stamp the build time
-        id: zeit
-        run: echo "jetzt=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "${GITHUB_OUTPUT}"
+        id: stamp
+        run: echo "now=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "${GITHUB_OUTPUT}"
 
       - name: Build and push multi-arch image
         if: steps.check.outputs.skip != 'true'
@@ -324,12 +306,11 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.tags.outputs.tags }}
-          # The commit and build time are only knowable here, not in the
-          # Dockerfile. Without the revision label a published image cannot be
-          # traced back to the source it was built from, which is exactly the
-          # question worth asking when something misbehaves in the wild.
+          # The commit and build time are only known here, not in the
+          # Dockerfile, and the revision label traces a published image back to
+          # its source.
           labels: |
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.created=${{ steps.zeit.outputs.jetzt }}
+            org.opencontainers.image.created=${{ steps.stamp.outputs.now }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

@@ -1,22 +1,12 @@
 #!/command/with-contenv sh
 # shellcheck shell=sh
-# =============================================================================
-# s6 service: juicefs
-# Runs the JuiceFS S3 gateway.
-#
-# The gateway is the right mode for this image: it needs no FUSE, no
-# --privileged and no shared bind propagation, just a port. The mount mode
-# would need all three, and none of that fits a template a stranger installs
-# with two clicks.
+# Runs the JuiceFS S3 gateway. The gateway needs no FUSE, no --privileged and
+# no shared bind propagation, just a port; the mount mode would need all three,
+# which does not fit a template a stranger installs with two clicks.
 #
 # JuiceFS reads the gateway credentials from MINIO_ROOT_USER and
-# MINIO_ROOT_PASSWORD (its S3 layer is built on the MinIO gateway code, hence
-# the names). 10-config.sh has already written the effective values to /run,
-# so the same credentials are used whether the user supplied them or one was
-# generated.
-#
-# s6-overlay v3 convention: no backgrounding, exec so signals reach the process.
-# =============================================================================
+# MINIO_ROOT_PASSWORD because its S3 layer is built on MinIO's gateway code.
+# 10-config.sh has written the effective values to /run, supplied or generated.
 
 PUID="${PUID:-99}"
 PGID="${PGID:-100}"
@@ -26,33 +16,25 @@ MINIO_ROOT_PASSWORD="$(cat /run/s3_root_password)"
 META_URL="$(cat /run/meta_url)"
 export MINIO_ROOT_USER MINIO_ROOT_PASSWORD
 
-# Without an explicit cache directory, JuiceFS derives one from HOME. gosu drops
-# to a uid that has no passwd entry, so HOME ends up as "/", the cache lands in
-# /.juicefs/cache, and that path is not writable for a non-root user: the cache
-# is clamped to zero and the log fills with one warning per second, forever.
-#
-# Setting HOME here does not help, because gosu sets it again for the target
-# user. The directory has to be passed as an argument, which is what CACHE_DIR
-# below does with this as its default.
+# Without an explicit cache directory JuiceFS derives one from HOME, and gosu
+# drops to a uid without a passwd entry, so the cache would land in the
+# unwritable /.juicefs/cache, clamped to zero with a warning per second in the
+# log. gosu resets HOME, so the directory is passed as an argument instead.
 CACHE_DIR="${CACHE_DIR:-/cache}"
 mkdir -p "${CACHE_DIR}" 2>/dev/null
 chown "${PUID}:${PGID}" "${CACHE_DIR}" 2>/dev/null
 
-# Arguments are built as a positional list, not as one string. A path with a
-# space in it would otherwise split into two arguments and the gateway would
-# refuse to start, and a "*" would be expanded against the working directory.
+# A positional list rather than one string, so a path with a space stays one
+# argument and a "*" is not expanded against the working directory.
 set -- gateway
 
-# Several buckets, on by default. Without this flag the whole file system is a
-# single bucket named after the volume, and CreateBucket is refused outright.
-# Measured against rclone: `mkdir` fails with NoSuchBucket. Nearly every backup
-# client creates its own bucket as its first action, so the plain mode turns a
-# working setup into an error message at the first step. Set this to false to
-# get upstream's single-bucket behaviour back.
+# Several buckets, on by default. Without the flag the file system is a single
+# bucket named after the volume and CreateBucket is refused, while nearly every
+# backup client creates its own bucket first (rclone's `mkdir` fails with
+# NoSuchBucket). false restores upstream's single-bucket behaviour.
 #
-# Compared case-insensitively: "True" and "TRUE" mean the same thing to a person
-# filling in a template field, and silently treating them as "off" would be a
-# trap. Anything that is not a yes turns the flag off.
+# Compared case-insensitively, since "True" means yes to anyone filling in a
+# template field. Anything that is not a yes turns the flag off.
 case "$(printf '%s' "${MULTI_BUCKETS:-true}" | tr '[:upper:]' '[:lower:]')" in
     true|yes|1|on) set -- "$@" --multi-buckets ;;
 esac
@@ -61,9 +43,8 @@ esac
 [ -n "${CACHE_SIZE}" ] && set -- "$@" --cache-size "${CACHE_SIZE}"
 [ -n "${CACHE_DIR}" ]  && set -- "$@" --cache-dir  "${CACHE_DIR}"
 
-# EXTRA_ARGS is a free-text field, so it is the one place where splitting on
-# spaces is the point: the user writes several arguments there. Word splitting
-# stays deliberate here, but globbing does not, so it is turned off first.
+# EXTRA_ARGS is a free-text field holding several arguments, so it is split on
+# spaces, with globbing turned off first.
 if [ -n "${EXTRA_ARGS}" ]; then
     set -f
     # shellcheck disable=SC2086
