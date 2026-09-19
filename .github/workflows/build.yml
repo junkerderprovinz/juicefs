@@ -291,7 +291,8 @@ jobs:
             sleep 2
           done
           [ -n "$ok" ] || { echo "::error::The arm64 image never came up"; exit 1; }
-          docker exec juicefs-arm64 juicefs status sqlite3:///config/juicefs.db >/dev/null             || { echo "::error::arm64 came up but created no file system"; exit 1; }
+          docker exec juicefs-arm64 juicefs status sqlite3:///config/juicefs.db >/dev/null \
+            || { echo "::error::arm64 came up but created no file system"; exit 1; }
           echo "arm64 starts and creates its file system."
 
       - name: Stamp the build time
