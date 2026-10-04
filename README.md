@@ -6,7 +6,7 @@
 <p align="center">
   <a href="https://github.com/junkerderprovinz/juicefs/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/junkerderprovinz/juicefs/build.yml?branch=main&label=Build&style=for-the-badge&logo=githubactions&logoColor=white" alt="Build" height="36"></a>&nbsp;
   <a href="https://github.com/juicedata/juicefs"><img src="https://img.shields.io/badge/Upstream-JuiceFS-3a7afe?style=for-the-badge&logo=go&logoColor=white" alt="Upstream JuiceFS" height="36"></a>&nbsp;
-  <a href="https://unraid.net"><img src="https://img.shields.io/badge/Unraid-Template-f15a2c?style=for-the-badge&logo=unraid&logoColor=white" alt="Unraid" height="36"></a>&nbsp;
+  <a href="https://ca.unraid.net/apps/juicefs-14sugi10m394v9"><img src="https://img.shields.io/badge/Unraid-Template-f15a2c?style=for-the-badge&logo=unraid&logoColor=white" alt="Unraid" height="36"></a>&nbsp;
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-yellow?style=for-the-badge&logo=apache&logoColor=white" alt="License" height="36"></a>
 </p>
 
@@ -18,6 +18,18 @@ s6-overlay. The file system is created on first boot, so there is no console
 step between installing the template and using it.
 </p>
 
+<!-- download-buttons: written by scripts/gen_download_buttons.py -->
+<p align="center">
+  <a href="https://ca.unraid.net/apps/juicefs-14sugi10m394v9"><img src="https://raw.githubusercontent.com/junkerderprovinz/juicefs/main/.github/assets/download-buttons/buttons.svg?v=a82cc8264e34#svgView(viewBox(0,0,841.9,245.3))" alt="Install from Unraid&#x27;s Community Applications" width="160" height="46.618"></a>
+  &nbsp;
+  <a href="https://hub.docker.com/r/junkerderprovinz/juicefs/"><img src="https://raw.githubusercontent.com/junkerderprovinz/juicefs/main/.github/assets/download-buttons/buttons.svg?v=a82cc8264e34#svgView(viewBox(866,0,841.9,245.3))" alt="Run it with Docker" width="160" height="46.618"></a>
+  &nbsp;
+  <a href="https://github.com/junkerderprovinz/juicefs/releases/latest"><img src="https://raw.githubusercontent.com/junkerderprovinz/juicefs/main/.github/assets/download-buttons/buttons.svg?v=a82cc8264e34#svgView(viewBox(1732,0,841.9,245.3))" alt="Download the source archive" width="160" height="46.618"></a>
+</p>
+<!-- /download-buttons -->
+
+<br>
+
 <p align="center">
 A one-knight job: I build it, keep it running, work through the issues and add what people ask for, until nothing is missing. It is free, with no accounts, no telemetry, no ads and no paid tier. No asterisk anywhere. Nothing readable ever leaves your own walls. Forged on evenings and weekends, with heart and stubbornness.
 </p>
@@ -26,204 +38,80 @@ A one-knight job: I build it, keep it running, work through the issues and add w
 If it has earned a place on your server or computer, toss a coin to your knight: it helps cover the costs and keeps the project alive. It also makes this knight's heart beat a little faster. Three ways below, whichever suits you.
 </p>
 
-<br>
-
+<!-- give-buttons: written by scripts/gen_download_buttons.py -->
 <p align="center">
-  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/give.svg#svgView(viewBox(0,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.62"></a>
+  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/juicefs/main/.github/assets/download-buttons/buttons.svg?v=a82cc8264e34#svgView(viewBox(2598,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/give.svg#svgView(viewBox(841.9,0,841.9,245.3))" alt="PayPal" width="160" height="46.62"></a>
+  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/juicefs/main/.github/assets/download-buttons/buttons.svg?v=a82cc8264e34#svgView(viewBox(3464,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/give.svg#svgView(viewBox(1683.8,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.62"></a>
+  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/juicefs/main/.github/assets/download-buttons/buttons.svg?v=a82cc8264e34#svgView(viewBox(4330,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
 </p>
+<!-- /give-buttons -->
 
 <br>
 
 ## Table of Contents
 
-1. [Why this container exists](#1-why-this-container-exists)
-2. [What is this?](#2-what-is-this)
-3. [Quick start on Unraid](#3-quick-start-on-unraid)
-4. [Connecting a client](#4-connecting-a-client)
-5. [Configuration](#5-configuration)
-6. [Choosing where the metadata lives](#6-choosing-where-the-metadata-lives)
-7. [Backup](#7-backup)
-8. [How AI is used here](#8-how-ai-is-used-here)
-9. [Support this project](#9-support-this-project)
+1. [What it looks like](#1-what-it-looks-like)
+2. [What it does](#2-what-it-does)
+3. [Getting started](#3-getting-started)
+4. [How AI is used here](#4-how-ai-is-used-here)
+5. [Support this project](#5-support-this-project)
 
 <br>
 
-## 1. Why this container exists
+## 1. What it looks like
 
-JuiceFS publishes two ways to run in Docker, and neither one fits a Community
-Applications template.
+The buckets and files in these pictures are made up.
 
-The first is a Docker volume plugin. A plugin is not a container, so Unraid
-cannot install it from a template at all. It also carries a documented flaw for
-the simplest setup: with SQLite the database file ends up inside the plugin's
-own container, and upstream notes that it stops working once the service
-restarts.
+<p align="center">
+  <img src=".github/assets/screenshots/juicefs-1.png" alt="The gateway's object browser in a browser, showing the files in a bucket named backups" width="100%">
+  <br><em>The gateway's own object browser on port 9000, after signing in with the S3 keys</em>
+</p>
 
-The second is the `juicedata/mount` image, which expects you to write the whole
-command line yourself, including the metadata URL, the storage backend and the
-credentials. That works, but a template built on it would be a `docker run`
-line in a text field, and the file system would still have to be created by
-hand in a console before anything could use it.
-
-This image closes both gaps. Every setting is an ordinary environment variable,
-so every setting is a field in the template, and the file system is created on
-first boot.
+<p align="center">
+  <img src=".github/assets/screenshots/juicefs-2.png" alt="The end of the container log: the banner, then JUICEFS IS READY and a note about the generated secret key" width="100%">
+  <br><em>The end of the log after a first start, with the ready line and where the generated key is</em>
+</p>
 
 <br>
 
-## 2. What is this?
+## 2. What it does
 
-The container runs `juicefs gateway`, which serves an S3 API on port 9000.
-
-The gateway is the right mode for a server like this. It needs no FUSE, no
-`--privileged` and no shared mount propagation, unlike the mount mode. A plain
-port is all it takes.
-
-Underneath, JuiceFS splits a file into two parts. The metadata, meaning names,
-directories, permissions and where the pieces are, goes into a database. The
-contents go into an object store as chunks. Out of the box this container puts
-the database in a SQLite file under `/config` and the chunks in `/data`, so a
-fresh install needs no second container and no external service.
-
-One consequence is worth knowing before you start: because files are stored as
-chunks, the contents of `/data` are not browsable. You will see JuiceFS's own
-directory layout there, not your file names. Everything goes in and comes out
-through the S3 gateway. If you want an S3 API in front of a share you can still
-read normally with a file browser, VersityGW is the better fit.
-
-The JuiceFS binary comes from the upstream release and is checked against the
-published SHA256 during the build, so a re-tagged release fails the build
-instead of shipping quietly.
+- **JuiceFS as an ordinary container.** Upstream offers a Docker volume plugin, which Unraid cannot install from a template, and the `juicedata/mount` image, which wants the whole command line written by hand. Here every setting is an environment variable, so every setting is a field in the template.
+- **No console step.** The file system is created on the first start. Every later start finds it and leaves it alone, so a volume is never formatted twice.
+- **S3 on port 9000, without FUSE.** The gateway needs neither `--privileged` nor shared mount propagation. Clients can create as many buckets as they like; set `MULTI_BUCKETS=false` for upstream's single bucket named after the volume.
+- **Metadata where you want it.** SQLite under `/config` by default, so a fresh install needs nothing else. A Redis or Postgres URL in `META_URL` moves it to a database several machines can share.
+- **Chunks, not files.** JuiceFS stores contents as chunks, so `/data` shows its own layout and not your file names. If you want an S3 API in front of a share you can still browse, VersityGW is the better fit.
+- **The official binary.** It comes from the upstream release and is checked against the published SHA256 during the build.
 
 <br>
 
-## 3. Quick start on Unraid
+## 3. Getting started
 
-Install the template from Community Applications, set a secret key if you want
-to choose your own, and start it. Nothing else is required.
+On Unraid, install JuiceFS from [Community Applications](https://ca.unraid.net/apps/juicefs-14sugi10m394v9) and start it. Nothing else is required. Anywhere else, one container is enough:
 
-On the first start the container creates the file system and logs what it did.
-If you left the secret key empty, one is generated and written to
-`/config/.s3_root_password`, and the log points you at it.
-
-On every later start it finds the existing file system and leaves it alone.
-That check comes before anything else, because formatting an existing volume a
-second time would orphan every object already in the store.
-
-<br>
-
-## 4. Connecting a client
-
-Point any S3 client at the container:
-
-```
-Endpoint:   http://<server>:9000
-Access key: juicefs          (or whatever you set as S3_ROOT_USER)
-Secret key: the value you set, or the one from /config/.s3_root_password
-Region:     us-east-1        (any value works, JuiceFS does not check it)
+```sh
+docker run -d --name juicefs -p 9000:9000 \
+  -v /path/to/config:/config \
+  -v /path/to/data:/data \
+  junkerderprovinz/juicefs:latest
 ```
 
-With the AWS CLI:
+The log says `JUICEFS IS READY` once the gateway is up. The access key is `juicefs`. Without `S3_ROOT_PASSWORD` the container generates a secret key and writes it to `/config/.s3_root_password`; one you set yourself needs at least 8 characters. Then point any S3 client at it:
 
 ```bash
 aws --endpoint-url http://<server>:9000 s3 mb s3://backups
 aws --endpoint-url http://<server>:9000 s3 cp ./file.txt s3://backups/
-aws --endpoint-url http://<server>:9000 s3 ls s3://backups/
 ```
 
-You can create as many buckets as you like, because the container runs the
-gateway in its multi-bucket mode. Each bucket is a top-level directory in the
-file system. That matters more than it sounds: in the plain mode the whole file
-system is a single bucket named after the volume, and creating one fails with
-NoSuchBucket, which is the first thing most backup clients try to do. Set
-`MULTI_BUCKETS` to `false` if you want the single-bucket behaviour instead.
+`STORAGE`, `BUCKET` and `VOLUME_NAME` are read only when the file system is created, so choose them before the first start. They accept every backend JuiceFS supports, such as another S3 server or Backblaze B2 instead of the local disk.
+
+Back up the metadata and the object store together, which with the defaults means `/config` and `/data`. The chunks are unreadable without the metadata, so a backup of `/data` alone is not a backup.
 
 <br>
 
-## 5. Configuration
-
-Some settings are read on every start, and some only once, when the file system
-is created. That distinction matters: changing a create-only setting later has
-no effect, and the log will not tell you so.
-
-**Read on every start:**
-
-| Variable | Default | What it does |
-| --- | --- | --- |
-| `META_URL` | `sqlite3:///config/juicefs.db` | Where the metadata lives. See section 6. |
-| `MULTI_BUCKETS` | `true` | Whether clients can create buckets. Set to `false` for upstream's single-bucket mode, where the whole file system is one bucket named after the volume. |
-| `S3_ROOT_USER` | `juicefs` | The access key clients use. |
-| `S3_ROOT_PASSWORD` | generated | The secret key clients use, **at least 8 characters**. Anything shorter is refused with one clear line in the log rather than a container that restarts forever. Left empty, one is generated and stored in `/config/.s3_root_password`. |
-| `CACHE_SIZE` | upstream default | Local read cache limit in MiB. |
-| `CACHE_DIR` | `/cache` | Where the local read cache goes. Map it if you want the cache on a specific disk. |
-| `EXTRA_ARGS` | empty | Passed to `juicefs gateway` as is, for anything not covered above. |
-| `PUID` / `PGID` | `99` / `100` | The user the gateway runs as. |
-
-**Read only when the file system is created:**
-
-| Variable | Default | What it does |
-| --- | --- | --- |
-| `STORAGE` | `file` | The object store backend. `file` means a plain directory. |
-| `BUCKET` | `/data/` | The path or URL of the object store. |
-| `VOLUME_NAME` | `juicefs` | The name of the file system. |
-| `ACCESS_KEY` | empty | Access key for a remote object store, if `STORAGE` is not `file`. |
-| `SECRET_KEY` | empty | Secret key for a remote object store. |
-| `TRASH_DAYS` | upstream default | How many days deleted files stay recoverable. |
-
-To change any of the second group on an existing install, you have to create a
-new file system, which means new metadata and starting over with the objects.
-
-`STORAGE` and `BUCKET` accept every backend JuiceFS supports, so the same
-container can put its chunks on another S3 server, on Backblaze B2 or on a
-MinIO instance instead of on the local disk.
-
-<br>
-
-## 6. Choosing where the metadata lives
-
-`META_URL` is one field, and it decides which database holds the metadata.
-
-The default is SQLite, a single file under `/config`. For one server that is
-the sensible choice: no second container, no network in between, and a backup
-of `/config` captures it. What it cannot do is serve several machines writing
-at once.
-
-For that case, put a Redis or Postgres URL in the same field:
-
-```
-redis://:password@192.168.20.10:6379/1
-postgres://user:password@192.168.20.10:5432/juicefs?sslmode=disable
-```
-
-Redis is what the JuiceFS project recommends for speed. Be aware that it keeps
-data in memory, so its persistence settings decide whether a power cut costs
-you the file system rather than just a cache.
-
-Whichever you pick, the database is not optional and it is not a cache. The
-chunks in the object store are unreadable without it. Section 7 follows from
-that.
-
-<br>
-
-## 7. Backup
-
-Back up the metadata database and the object store together, and from the same
-point in time if you can.
-
-With the default settings that means `/config` and `/data`. If the metadata is
-in Redis or Postgres, back that database up with its own tools and keep the
-schedule close to the object store's.
-
-A backup of only the object store is not a backup. The chunks are there, but
-nothing says which chunks made up which file.
-
-<br>
-
-## 8. How AI is used here
+## 4. How AI is used here
 
 One knight builds this, and AI is one of the tools I work with, the same way I work with an editor or a compiler. It helps me write code and documentation and it checks my work, and that saves me a good many evenings. It does not make the decisions, though. I read and understand everything before it ships, and if something here breaks, that is on me and not on the tool.
 
@@ -231,7 +119,7 @@ You do not have to take my word for it. The code is open and every release note 
 
 <br>
 
-## 9. Support this project
+## 5. Support this project
 
 Questions? Check the [support thread](https://forums.unraid.net/topic/198811-support-junkerderprovinz-unraid-apps/). Bugs, ideas or feature requests? Please [open a GitHub issue](https://github.com/junkerderprovinz/juicefs/issues).
 
@@ -239,10 +127,14 @@ A one-knight job: I build it, keep it running, work through the issues and add w
 
 If it has earned a place on your server or computer, toss a coin to your knight: it helps cover the costs and keeps the project alive. It also makes this knight's heart beat a little faster. Three ways below, whichever suits you.
 
+<!-- give-buttons: written by scripts/gen_download_buttons.py -->
 <p align="center">
-  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/give.svg#svgView(viewBox(0,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.62"></a>
+  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/juicefs/main/.github/assets/download-buttons/buttons.svg?v=a82cc8264e34#svgView(viewBox(2598,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/give.svg#svgView(viewBox(841.9,0,841.9,245.3))" alt="PayPal" width="160" height="46.62"></a>
+  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/juicefs/main/.github/assets/download-buttons/buttons.svg?v=a82cc8264e34#svgView(viewBox(3464,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/give.svg#svgView(viewBox(1683.8,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.62"></a>
+  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/juicefs/main/.github/assets/download-buttons/buttons.svg?v=a82cc8264e34#svgView(viewBox(4330,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
 </p>
+<!-- /give-buttons -->
+
+<sub>JuiceFS is made by Juicedata and ships here unmodified under the Apache-2.0 licence.</sub>
