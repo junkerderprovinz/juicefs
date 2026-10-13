@@ -192,7 +192,9 @@ jobs:
 
           # The init script must say so too. Without this, a run where the
           # format step silently did nothing would still look green.
-          docker logs juicefs-smoke 2>&1 | grep -q "Existing file system found" \
+          # Matched on a captured copy: `docker logs | grep -q` under pipefail dies of
+          # SIGPIPE once more log follows the match, and the line then reads as missing.
+          grep -q "Existing file system found" <<< "$(docker logs juicefs-smoke 2>&1)" \
             || { echo "::error::The init script did not report finding the existing file system"; exit 1; }
 
           # (4) A real S3 round trip with the runner's AWS CLI. Creating a bucket
@@ -222,7 +224,8 @@ jobs:
 
           # (5) In a directory the service cannot write to, the read cache is
           # clamped to zero and the log gets one warning per second.
-          if docker logs juicefs-smoke 2>&1 | grep -q "no such file or directory.*juicefs/cache"; then
+          # Matched on a captured copy, see the check above.
+          if grep -q "no such file or directory.*juicefs/cache" <<< "$(docker logs juicefs-smoke 2>&1)"; then
             echo "::error::The read cache directory is not writable, the log is filling with warnings"
             exit 1
           fi
@@ -241,7 +244,8 @@ jobs:
           STATE="$(docker inspect -f '{{.State.Status}}' juicefs-smoke)"
           [ "${STATE}" = "exited" ] \
             || { echo "::error::A too-short secret key left the container ${STATE}, expected exited"; exit 1; }
-          docker logs juicefs-smoke 2>&1 | grep -q "at least 8" \
+          # Matched on a captured copy, see the check above.
+          grep -q "at least 8" <<< "$(docker logs juicefs-smoke 2>&1)" \
             || { echo "::error::The container stopped but did not say why"; exit 1; }
           echo "Short secret key refused cleanly"
 
