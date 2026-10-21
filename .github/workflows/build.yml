@@ -205,6 +205,10 @@ jobs:
           export AWS_ACCESS_KEY_ID=juicefs
           export AWS_SECRET_ACCESS_KEY="${KEY}"
           export AWS_DEFAULT_REGION=us-east-1
+          # From AWS CLI 2.38 on, uploads go through the CRT client with a
+          # checksum the gateway rejects as XAmzContentSHA256Mismatch. The
+          # README gives users the same setting.
+          export AWS_REQUEST_CHECKSUM_CALCULATION=when_required
           EP="--endpoint-url http://127.0.0.1:9000"
 
           aws $EP s3 mb s3://smoke \

@@ -107,6 +107,8 @@ aws --endpoint-url http://<server>:9000 s3 mb s3://backups
 aws --endpoint-url http://<server>:9000 s3 cp ./file.txt s3://backups/
 ```
 
+With AWS CLI 2.38 or newer, uploads fail with `XAmzContentSHA256Mismatch` until you set `AWS_REQUEST_CHECKSUM_CALCULATION=when_required`, or `request_checksum_calculation = when_required` in `~/.aws/config`. The gateway does not accept the checksum those versions send by default.
+
 `STORAGE`, `BUCKET` and `VOLUME_NAME` are read only when the file system is created, so choose them before the first start. They accept every backend JuiceFS supports, such as another S3 server or Backblaze B2 instead of the local disk.
 
 Back up the metadata and the object store together, which with the defaults means `/config` and `/data`. The chunks are unreadable without the metadata, so a backup of `/data` alone is not a backup.
