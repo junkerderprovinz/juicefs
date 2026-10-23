@@ -7,7 +7,7 @@
 
 services:
   juicefs:
-    image: junkerderprovinz/juicefs:latest@sha256:650713dcfdfaee0d23c1d04611ea0dcc9ac38de6cc62d07073d435babbcc5429
+    image: junkerderprovinz/juicefs:latest
     container_name: juicefs
     restart: unless-stopped
     ports:
