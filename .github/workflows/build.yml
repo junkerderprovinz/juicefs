@@ -2,6 +2,8 @@
 # pinned in the Dockerfile, and pushes it to GHCR, and to Docker Hub once the
 # DOCKERHUB_USERNAME variable and the DOCKERHUB_TOKEN secret are both set.
 # Renovate bumps the pinned versions.
+# The weekly cron and a manual run build without the layer cache, so latest
+# picks up base image updates.
 
 name: Build & Push Docker Image
 
@@ -17,6 +19,9 @@ on:
   push:
     branches: [main]
     paths-ignore: ['**.md', 'LICENSE', 'templates/**']
+  # Weekly, to rebuild latest on fresh base images and packages.
+  schedule:
+    - cron: '20 7 * * 0'
 
 permissions:
   contents: read
@@ -53,7 +58,7 @@ jobs:
           SKIP="false"
           FORCE="${{ github.event.inputs.force_rebuild }}"
           EVENT="${{ github.event_name }}"
-          if [ "${EVENT}" = "push" ]; then
+          if [ "${EVENT}" = "push" ] || [ "${EVENT}" = "schedule" ]; then
             SKIP="false"
           elif [ "${FORCE}" = "true" ]; then
             SKIP="false"
@@ -122,6 +127,7 @@ jobs:
           load: true
           tags: juicefs:smoke-amd64
           cache-from: type=gha
+          no-cache: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
 
       - name: "Smoke test: bare start, self-format, and no re-format on restart"
         if: steps.check.outputs.skip != 'true'
@@ -284,6 +290,7 @@ jobs:
           load: true
           tags: juicefs:smoke-arm64
           cache-from: type=gha
+          no-cache: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
 
       - name: Start check on arm64
         if: steps.check.outputs.skip != 'true'
@@ -323,3 +330,4 @@ jobs:
             org.opencontainers.image.created=${{ steps.stamp.outputs.now }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          no-cache: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
