@@ -1,9 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "helpers:pinGitHubActionDigests",
-    "docker:pinDigests",
-    ":dependencyDashboard"
+    "local>junkerderprovinz/junkerderprovinz//renovate/base"
   ],
   "packageRules": [
     {
@@ -17,8 +15,6 @@
         "digest"
       ],
       "automerge": true,
-      "automergeType": "pr",
-      "platformAutomerge": true,
       "commitMessagePrefix": "ci:",
       "labels": [
         "docker"
