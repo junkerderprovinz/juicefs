@@ -33,8 +33,8 @@ RUN apt-get update \
 
 # A new version needs new checksums here; a mismatch fails the build.
 RUN case "${TARGETARCH}" in \
-        amd64) SHA="01ee09a21a9351a465e09906f113845e1c6a19bea70f530e5e2b2125b2dd3b82" ;; \
-        arm64) SHA="1015ade83a7a93180a29f6c93ee5780a3eda52522331934ef2ef0cc0921995fd" ;; \
+        amd64) SHA="79648a0a67145bf42ca4e8336578c13a5bbc9a0bd34df340b3b93dac1e975247" ;; \
+        arm64) SHA="19f72a30d3642a2f7971c8c4a31d2647de62f19520716e85c3a777de5f4c9036" ;; \
         *)     echo "Unsupported arch: ${TARGETARCH}" && exit 1 ;; \
     esac \
     && URL="https://github.com/juicedata/juicefs/releases/download/v${JUICEFS_VERSION}/juicefs-${JUICEFS_VERSION}-linux-${TARGETARCH}.tar.gz" \
