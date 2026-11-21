@@ -15,7 +15,7 @@
 # renovate: datasource=github-releases depName=juicedata/juicefs
 ARG JUICEFS_VERSION=1.4.1
 # renovate: datasource=github-releases depName=just-containers/s6-overlay versioning=loose
-ARG S6_OVERLAY_VERSION=3.2.0.2
+ARG S6_OVERLAY_VERSION=3.2.3.2
 
 # The fetch stage keeps the download tools and the tarball out of the final
 # image. The checksums come from the release's checksums.txt and are pinned here
