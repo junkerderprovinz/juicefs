@@ -2,9 +2,11 @@
  * Generates the juicefs README banners. Text is rendered at the origin and
  * placed with <g transform>, because opentype.js produces NaN at a large
  * absolute x.
+ * The name is set in Bree Serif Light and the claim in Bree Light, read as TTF
+ * from HOUSE_FONTS (default %LOCALAPPDATA%\halleluja-fonts).
  * Run: node .github/assets/gen-banner.mjs
  */
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
@@ -17,14 +19,14 @@ const opentype = require(`${groot}/opentype.js`);
 const { Resvg } = require(`${groot}/@resvg/resvg-js`);
 const HERE = dirname(fileURLToPath(import.meta.url));
 
-async function font(file, url) {
-  const p = join(tmpdir(), file);
-  if (!existsSync(p)) { const r = await fetch(url); if (!r.ok) throw new Error(`${file} ${r.status}`); writeFileSync(p, Buffer.from(await r.arrayBuffer())); }
-  const b = readFileSync(p);
+// The house typeface is licensed, so it is read from a local folder and never committed.
+const fonts = process.env.HOUSE_FONTS ?? join(process.env.LOCALAPPDATA ?? tmpdir(), "halleluja-fonts");
+function font(file) {
+  const b = readFileSync(join(fonts, file));
   return opentype.parse(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
 }
-const bree = await font("jdp-BreeSerif-Regular.ttf", "https://github.com/google/fonts/raw/main/ofl/breeserif/BreeSerif-Regular.ttf");
-const lato = await font("jdp-Lato-Regular.ttf", "https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf");
+const bree = font("bree-serif-light.ttf");
+const claimFont = font("bree-light.ttf");
 const bbox = (svg) => new Resvg(svg, { fitTo: { mode: "original" } }).getBBox();
 
 // icon.svg is the JuiceFS mark without the upstream lockup's wordmark; the name
@@ -55,16 +57,16 @@ const nb = bbox(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5000 800">
 const nameH = nb.height, nameInkTop = nb.y - 500;
 
 function fitClaim(text, maxW, cap) {
-  let size = Math.min(cap, Math.floor((100 * maxW) / lato.getAdvanceWidth(text, 100)));
-  for (; size > 10; size--) if (!lato.getPath(text, 0, 0, size).toPathData(2).includes("NaN")) return size;
+  let size = Math.min(cap, Math.floor((100 * maxW) / claimFont.getAdvanceWidth(text, 100)));
+  for (; size > 10; size--) if (!claimFont.getPath(text, 0, 0, size).toPathData(2).includes("NaN")) return size;
   return 10;
 }
 const claimSize = fitClaim(CLAIM, maxNameW, CLAIM_CAP);
-const claimAsc = lato.ascender * (claimSize / lato.unitsPerEm), claimDesc = -lato.descender * (claimSize / lato.unitsPerEm);
+const claimAsc = claimFont.ascender * (claimSize / claimFont.unitsPerEm), claimDesc = -claimFont.descender * (claimSize / claimFont.unitsPerEm);
 const groupH = nameH + GAP_NAME_CLAIM + claimAsc + claimDesc;
 const top = H / 2 - groupH / 2;
 const claimBaseline = Math.round(top + nameH + GAP_NAME_CLAIM + claimAsc);
-const claimD = lato.getPath(CLAIM, 0, 0, claimSize).toPathData(2);
+const claimD = claimFont.getPath(CLAIM, 0, 0, claimSize).toPathData(2);
 
 const THEMES = [
   { suf: "", bg: "#ffffff", name: "#1f2328", claim: "#5a5d5e" },
