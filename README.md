@@ -141,6 +141,6 @@ You do not have to take my word for it. The code is open and every release note 
 
 <br>
 
-Questions? Check the [support thread](https://forums.unraid.net/topic/198811-support-junkerderprovinz-unraid-apps/). Bugs, ideas or feature requests? Please [open a GitHub issue](https://github.com/junkerderprovinz/juicefs/issues).
+Questions, bugs, ideas or feature requests? Please [open a GitHub issue](https://github.com/junkerderprovinz/juicefs/issues).
 
 <sub>JuiceFS is made by Juicedata and ships here unmodified under the Apache-2.0 licence.</sub>
