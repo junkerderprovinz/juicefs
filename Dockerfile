@@ -20,7 +20,7 @@ ARG S6_OVERLAY_VERSION=3.2.3.2
 # The fetch stage keeps the download tools and the tarball out of the final
 # image. The checksums come from the release's checksums.txt and are pinned here
 # so a re-tagged release cannot change what gets installed.
-FROM debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc AS fetch
+FROM debian:bookworm-slim@sha256:e67eeead736ff7bbe258ef088bff683635c561b1fcfefad0806c1df4ab49ce0e AS fetch
 
 ARG JUICEFS_VERSION
 ARG TARGETARCH
@@ -44,7 +44,7 @@ RUN case "${TARGETARCH}" in \
     && install -m 0755 /tmp/juicefs /usr/local/bin/juicefs \
     && /usr/local/bin/juicefs --version
 
-FROM debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc
+FROM debian:bookworm-slim@sha256:e67eeead736ff7bbe258ef088bff683635c561b1fcfefad0806c1df4ab49ce0e
 
 ARG S6_OVERLAY_VERSION
 ARG TARGETARCH
